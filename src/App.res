@@ -1,22 +1,3 @@
-type orientation = TR | BR | TL | BL
-
-let cornerOrientation = (ax, ay, cx, cy, mod) => {
-  switch (cx > ax, cy > ay, mod) {
-  | (true, true, true) => TR
-  | (true, true, false) => BL
-  | (true, false, true) => BR
-  | (true, false, false) => TL
-  | (false, true, true) => TL
-  | (false, true, false) => BR
-  | (false, false, true) => BL
-  | (false, false, false) => TR
-  }
-}
-
-let toString = Belt.Int.toString
-
-let intAbs = a => Math.abs(a->Int.toFloat)->Float.toInt
-
 @react.component
 let make = () => {
   let points = [
@@ -28,17 +9,18 @@ let make = () => {
     (1000, 600),
     (1000, 200),
     (200, 200),
+    (200, 100),
   ]
 
   let box = (t, l, h, w, c) => {
     <div
       style={{
         position: "fixed",
-        top: t->toString ++ "px",
-        left: l->toString ++ "px",
+        top: t->Belt.Int.toString ++ "px",
+        left: l->Belt.Int.toString ++ "px",
         backgroundColor: c,
-        height: h->toString ++ "px",
-        width: w->toString ++ "px",
+        height: h->Belt.Int.toString ++ "px",
+        width: w->Belt.Int.toString ++ "px",
       }}
     />
   }
@@ -54,9 +36,9 @@ let make = () => {
 
       arr->Array.concat(
         switch (points->Array.get(i + 1), points->Array.get(i + 2)) {
-        | (Some((bx, by)), Some((cx, cy))) => {
-            let w = intAbs(bx - ax)
-            let h = intAbs(by - ay)
+        | (Some((bx, by)), c) => {
+            let w = Math.abs((bx - ax)->Int.toFloat)->Float.toInt
+            let h = Math.abs((by - ay)->Int.toFloat)->Float.toInt
             let horz = mod(i, 2) == 0
 
             let edges = horz
@@ -67,14 +49,24 @@ let make = () => {
               ? [box(ay, ax, h, t, blue), box(ay, ax - t, h, t, red)]
               : [box(by, bx - t, h, t, blue), box(by, bx, h, t, red)]
 
-            let corner = switch cornerOrientation(ax, ay, cx, cy, horz) {
-            | TR => [box(by - t, bx, t, t, horz ? blue : red)]
-            | BR => [box(by, bx, t, t, horz ? red : blue)]
-            | TL => [box(by - t, bx - t, t, t, horz ? red : blue)]
-            | BL => [box(by, bx - t, t, t, horz ? blue : red)]
+            let corner = switch c {
+            | Some((cx, cy)) =>
+              switch (cx > ax, cy > ay, horz) {
+              | (true, true, true) => [box(by - t, bx, t, t, blue)]
+              | (false, false, false) => [box(by - t, bx, t, t, red)]
+              | (false, true, true) => [box(by - t, bx - t, t, t, red)]
+              | (true, false, false) => [box(by - t, bx - t, t, t, blue)]
+              | (true, false, true) => [box(by, bx, t, t, red)]
+              | (false, true, false) => [box(by, bx, t, t, blue)]
+              | (false, false, true) => [box(by, bx - t, t, t, blue)]
+              | (true, true, false) => [box(by, bx - t, t, t, red)]
+              }
+
+            | None => []
             }
             Array.concat(edges, corner)
           }
+
         | _ => [React.null]
         },
       )
