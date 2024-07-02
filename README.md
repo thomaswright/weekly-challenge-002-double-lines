@@ -4,6 +4,8 @@ This is a solution for https://github.com/Algorithm-Arena/weekly-challenge-2-dou
 
 This solution draws the snake with regular ol' divs. Written in Rescript.
 
+<video src="./double-lines.mov"></video>
+
 ## Demo
 
 https://thomaswright.github.io/weekly-challenge-002-double-lines/
